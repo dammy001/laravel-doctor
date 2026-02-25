@@ -1,0 +1,44 @@
+{
+  "name": "bunce/laravel-doctor",
+  "description": "A Laravel package that scans applications for security, performance, correctness, and architecture issues.",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Bunce\\LaravelDoctor\\": "src/"
+    }
+  },
+  "require": {
+    "php": "^8.2",
+    "illuminate/console": "^10.0 || ^11.0 || ^12.0",
+    "illuminate/support": "^10.0 || ^11.0 || ^12.0",
+    "illuminate/filesystem": "^10.0 || ^11.0 || ^12.0"
+  },
+  "require-dev": {
+    "laravel/framework": "^10.0 || ^11.0 || ^12.0",
+    "phpunit/phpunit": "^11.5",
+    "larastan/larastan": "^3.9",
+    "laravel/pint": "^1.27"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Bunce\\LaravelDoctor\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Bunce\\LaravelDoctor\\LaravelDoctorServiceProvider"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "vendor/bin/phpunit",
+    "pint": "vendor/bin/pint",
+    "phpstan": "vendor/bin/phpstan analyse --memory-limit=1G",
+    "lint": [
+      "@pint",
+      "@phpstan"
+    ]
+  }
+}
