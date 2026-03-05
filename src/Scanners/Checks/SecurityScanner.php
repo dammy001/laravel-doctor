@@ -25,7 +25,7 @@ final class SecurityScanner extends AbstractPathScanner
         $dangerousFunctions = '/\b(exec|shell_exec|system|passthru|proc_open|popen|eval)\s*\(/i';
 
         foreach ($files as $file) {
-            $lines = file($file, FILE_IGNORE_NEW_LINES) ?: [];
+            $lines = $this->readLines($file);
 
             foreach ($lines as $lineNumber => $line) {
                 if (preg_match($hardcodedSecret, $line)) {

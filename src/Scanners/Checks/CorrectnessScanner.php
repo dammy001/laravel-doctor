@@ -22,7 +22,7 @@ final class CorrectnessScanner extends AbstractPathScanner
         $files = $this->gatherPhpFiles($paths, $extensions);
 
         foreach ($files as $file) {
-            $lines = file($file, FILE_IGNORE_NEW_LINES) ?: [];
+            $lines = $this->readLines($file);
 
             foreach ($lines as $lineNumber => $line) {
                 if (preg_match('/\b(catch\s*\(.*\)\s*\{\s*\})/i', trim($line))) {

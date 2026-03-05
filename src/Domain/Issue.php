@@ -29,4 +29,33 @@ final class Issue
             'code' => $this->code,
         ];
     }
+
+    public static function fromArray(array $payload): self
+    {
+        $severity = is_string($payload['severity'] ?? null) ? strtolower((string) $payload['severity']) : 'low';
+        $category = is_string($payload['category'] ?? null) ? strtolower((string) $payload['category']) : 'correctness';
+
+        return new self(
+            category: IssueCategory::tryFrom($category) ?? IssueCategory::CORRECTNESS,
+            severity: IssueSeverity::tryFrom($severity) ?? IssueSeverity::LOW,
+            rule: (string) ($payload['rule'] ?? 'unknown-rule'),
+            message: (string) ($payload['message'] ?? 'Unknown issue'),
+            file: (string) ($payload['file'] ?? ''),
+            line: is_numeric($payload['line'] ?? null) ? (int) $payload['line'] : 1,
+            recommendation: (string) ($payload['recommendation'] ?? ''),
+            code: isset($payload['code']) && is_string($payload['code']) ? $payload['code'] : null,
+        );
+    }
+
+    public function fingerprint(): string
+    {
+        return sha1(implode('|', [
+            $this->category->value,
+            $this->severity->value,
+            $this->rule,
+            $this->file,
+            (string) $this->line,
+            $this->message,
+        ]));
+    }
 }

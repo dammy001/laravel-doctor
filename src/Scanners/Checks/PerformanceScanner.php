@@ -5,6 +5,7 @@ namespace Bunce\LaravelDoctor\Scanners\Checks;
 use Bunce\LaravelDoctor\Domain\Issue;
 use Bunce\LaravelDoctor\Domain\IssueCategory;
 use Bunce\LaravelDoctor\Domain\IssueSeverity;
+use Bunce\LaravelDoctor\Scanners\Ast\AstEngine;
 use Bunce\LaravelDoctor\Scanners\AbstractPathScanner;
 
 final class PerformanceScanner extends AbstractPathScanner
@@ -25,12 +26,13 @@ final class PerformanceScanner extends AbstractPathScanner
         $memoryGrowthThreshold = isset($performanceConfig['memory_growth_threshold_per_loop']) && is_numeric($performanceConfig['memory_growth_threshold_per_loop']) ? (int) $performanceConfig['memory_growth_threshold_per_loop'] : 20;
 
         foreach ($files as $file) {
-            $lines = file($file, FILE_IGNORE_NEW_LINES) ?: [];
+            $lines = $this->readLines($file);
             if ($lines === []) {
                 continue;
             }
 
             $this->scanNPlusOneWithLoops($lines, $file, $issues);
+            $this->scanNPlusOneWithAst($file, $issues);
             $this->scanUnboundedQueries($lines, $file, $issues, $unboundedGetThreshold);
             $this->scanQueryHotspots($lines, $file, $issues);
             $this->scanMemoryGrowthInLoops($lines, $file, $issues, $memoryGrowthThreshold);
@@ -38,8 +40,29 @@ final class PerformanceScanner extends AbstractPathScanner
         }
 
         $issues = array_merge($issues, (new DatabaseScanner)->scan($paths, $config));
+        $issues = array_merge($issues, (new DatabaseAdvancedScanner)->scan($paths, $config));
 
         return $issues;
+    }
+
+    /** @param array<int, Issue> $issues */
+    private function scanNPlusOneWithAst(string $file, array &$issues): void
+    {
+        $astEngine = new AstEngine;
+        $results = $astEngine->findPotentialLoopQueries($file);
+
+        foreach ($results as $result) {
+            $this->addIssue($issues, new Issue(
+                category: IssueCategory::PERFORMANCE,
+                severity: IssueSeverity::HIGH,
+                rule: 'n-plus-one-query-ast',
+                message: 'AST-detected query invocation inside loop.',
+                file: $file,
+                line: $result['line'],
+                recommendation: 'Move query outside loop and eager-load/collect identifiers before database access.',
+                code: $result['code'],
+            ));
+        }
     }
 
     /** @param list<string> $lines

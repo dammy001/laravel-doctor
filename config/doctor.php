@@ -42,4 +42,14 @@ return [
         'enabled' => true,
         'max_in_list_items' => 20,
     ],
+
+    'baseline' => [
+        'path' => base_path('doctor-baseline.json'),
+    ],
+
+    'cache' => [
+        'enabled' => true,
+        'path' => base_path('storage/app/doctor-cache.json'),
+        'parallel_categories' => true,
+    ],
 ];

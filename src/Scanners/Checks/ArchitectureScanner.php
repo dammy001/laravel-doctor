@@ -22,13 +22,13 @@ final class ArchitectureScanner extends AbstractPathScanner
         $files = $this->gatherPhpFiles($paths, $extensions);
 
         foreach ($files as $file) {
-            $contents = file_get_contents($file);
-            if ($contents === false) {
+            $contents = $this->readContents($file);
+            if ($contents === '') {
                 continue;
             }
 
-            $lines = file($file, FILE_IGNORE_NEW_LINES);
-            if ($lines === false) {
+            $lines = $this->readLines($file);
+            if ($lines === []) {
                 continue;
             }
             $lineCount = count($lines);
@@ -80,6 +80,8 @@ final class ArchitectureScanner extends AbstractPathScanner
                 ));
             }
         }
+
+        $issues = array_merge($issues, (new LaravelBestPracticeScanner)->scan($paths, $config));
 
         return $issues;
     }
